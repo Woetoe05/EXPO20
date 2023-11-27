@@ -1,119 +1,71 @@
-//ready not safe STATE
+/**
+ * Complete project details at https://RandomNerdTutorials.com/arduino-load-cell-hx711/
+ *
+ * HX711 library for Arduino - example file
+ * https://github.com/bogde/HX711
+ *
+ * MIT License
+ * (c) 2018 Bogdan Necula
+ *
+**/
+
 #include <Arduino.h>
-#include <Servo.h>
-#include <AccelStepper.h>
-using namespace std;
+#include "HX711.h"
 
-//Servo's
-Servo ServoScrew;
-Servo ServoValve;
+// HX711 circuit wiring
+const int LOADCELL_DOUT_PIN = 2;
+const int LOADCELL_SCK_PIN = 3;
 
-
-//Arm define
-int moveDir = 1;
-const float stepsPerDeg = (6400.0/360.0); // 6400 = 360 deg
-const float degPerStep = (360.0/6400.0);
-
-//Stepper motor
-const int dirPin = 7;
-const int stepPin = 6;
-#define stepperEnable 26
-#define motorInterfaceType 1
-AccelStepper myStepper(motorInterfaceType, stepPin, dirPin);
-bool stopped = false;
-
-// constants
-int stepsDone = 0;
-int normalSpeed = 50;
-int slowSpeed = 10;
-int stopSpeed = 0;
-
-// variabels
-double wantedAmount;
-double currentAmount = 0;
-double minimumCE;
-//code-------------------------------------------------------------|
-
-//Alles van Arm----------------------------------------------------|
-void runSpeed(int neededSpeed){
-  myStepper.setSpeed(normalSpeed);
-  myStepper.runSpeed();
-}
-void switchSpeed(int theState){
-  switch (theState)
-    {
-    case 10:
-      runSpeed(normalSpeed);
-      break;
-    case 20:
-      runSpeed(slowSpeed);
-      break;
-    case 30:
-      runSpeed(stopSpeed);
-      //close all servo's-->
-      break;
-    case 0:
-      //emergency stop
-      break;
-    default:
-      break;
-    }
-    
-}
-//Alles van weight-------------------------------------------------|
-int checkCurrentAmount(double currentAmount){
-  // for now it is +=10
-  // later it will check the weight
-  currentAmount += 10;
-  return currentAmount;
-}
-int whichState(double currentAmount, double wantedAmount, double minimumCE){
-  if (currentAmount <= 0.8*wantedAmount){//normal speed under risk amount
-    return 10;
-  }
-  else if (currentAmount >= 0.8*wantedAmount){//slower speed above risk amount
-    return 20;
-  }
-  else if (currentAmount >= minimumCE){//stop when in CE range
-    return 30;
-  }
-  else{
-    return 0;
-    }
-}
+HX711 scale;
 
 void setup() {
-   //Arm void setup----------------------------------------------------------|
-  delay(1000);
-  myStepper.setMaxSpeed(1000);
-  myStepper.setAcceleration(1000);
-  myStepper.setCurrentPosition(0);
-  pinMode(stepperEnable, OUTPUT);   
-  digitalWrite(stepperEnable, LOW);
-  Serial.begin(9600);
-  //close all servos-->
-  //calibrate sensors-->
-  //stepper motor still-->
-  //ready safe STATE-->
+  Serial.begin(57600);
+  Serial.println("HX711 Demo");
+  Serial.println("Initializing the scale");
+
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+
+  Serial.println("Before setting up the scale:");
+  Serial.print("read: \t\t");
+  Serial.println(scale.read());      // print a raw reading from the ADC
+
+  Serial.print("read average: \t\t");
+  Serial.println(scale.read_average(20));   // print the average of 20 readings from the ADC
+
+  Serial.print("get value: \t\t");
+  Serial.println(scale.get_value(5));   // print the average of 5 readings from the ADC minus the tare weight (not set yet)
+
+  Serial.print("get units: \t\t");
+  Serial.println(scale.get_units(5), 1);  // print the average of 5 readings from the ADC minus tare weight (not set) divided
+            // by the SCALE parameter (not set yet)
+            
+  scale.set_scale(-459.542);
+  //scale.set_scale(-471.497);                      // this value is obtained by calibrating the scale with known weights; see the README for details
+  scale.tare();               // reset the scale to 0
+
+  Serial.println("After setting up the scale:");
+
+  Serial.print("read: \t\t");
+  Serial.println(scale.read());                 // print a raw reading from the ADC
+
+  Serial.print("read average: \t\t");
+  Serial.println(scale.read_average(20));       // print the average of 20 readings from the ADC
+
+  Serial.print("get value: \t\t");
+  Serial.println(scale.get_value(5));   // print the average of 5 readings from the ADC minus the tare weight, set with tare()
+
+  Serial.print("get units: \t\t");
+  Serial.println(scale.get_units(5), 1);        // print the average of 5 readings from the ADC minus tare weight, divided
+            // by the SCALE parameter set with set_scale
+
+  Serial.println("Readings:");
 }
 
 void loop() {
-  wantedAmount = Serial.read();
-  minimumCE = 0.98 *wantedAmount;
-  //dispensing STATE
-  //check if there is a bag | not necesserry for our project-->
-  while (currentAmount < minimumCE){
-    currentAmount = checkCurrentAmount(currentAmount);
-    int theState = whichState(currentAmount, wantedAmount, minimumCE);
-    switchSpeed(theState);
-    if (theState == 30){
-      //close all servo's
-      //finished state
-      break;
-    }
-    stepsDone = myStepper.currentPosition();
-  }
-  Serial.print("This is the amount you got dispensed: ");
-  Serial.println(currentAmount);
+  Serial.print("one reading:\t");
+  Serial.print(scale.get_units(), 1);
+  Serial.print("\t| average:\t");
+  Serial.println(scale.get_units(10), 5);
 
+  delay(5000);
 }

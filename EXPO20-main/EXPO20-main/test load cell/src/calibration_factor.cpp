@@ -12,6 +12,7 @@
 // Calibrating the load cell
 #include "HX711.h"
 #include <Arduino.h>
+
 // HX711 circuit wiring
 const int LOADCELL_DOUT_PIN = 2;
 const int LOADCELL_SCK_PIN = 3;

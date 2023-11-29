@@ -10,66 +10,32 @@ Servo ServoScrew;
 Servo ServoValve;
 
 
-//Arm define
-int moveDir = 1;
-const float stepsPerDeg = (6400.0/360.0); // 6400 = 360 deg
-const float degPerStep = (360.0/6400.0);
-
 //Stepper motor
 const int dirPin = 7;
 const int stepPin = 6;
 #define stepperEnable 26
-#define motorInterfaceType 1
-AccelStepper myStepper(motorInterfaceType, stepPin, dirPin);
-bool stopped = false;
+
+const int stepsPerRevolution = 200;
+const int RPM = 65;
+const float rotationSpeed = (((60*1000000)/RPM)/200)/2;//delay in microseconds
+
+const int angle = 360;
 
 // constants
 int stepsDone = 0;
-int normalSpeed = 50;
-int slowSpeed = 10;
-int stopSpeed = 0;
+
 
 // variabels
-double wantedAmount;
+double wantedAmount = 0;
 double currentAmount = 0;
 double minimumCE;
-//code-------------------------------------------------------------|
-
-//Alles van Arm----------------------------------------------------|
-void runSpeed(int neededSpeed){
-  myStepper.setSpeed(normalSpeed);
-  myStepper.runSpeed();
-}
-void switchSpeed(int theState){
-  switch (theState)
-    {
-    case 10:
-      runSpeed(normalSpeed);
-      break;
-    case 20:
-      runSpeed(slowSpeed);
-      break;
-    case 30:
-      runSpeed(stopSpeed);
-      //close all servo's-->
-      break;
-    case 0:
-      //emergency stop
-      break;
-    default:
-      break;
-    }
-    
-}
-//Alles van weight-------------------------------------------------|
+//code-----------------------------------------------------------------------|
 
 
 void setup() {
-   //Arm void setup----------------------------------------------------------|
   delay(1000);
-  myStepper.setMaxSpeed(1000);
-  myStepper.setAcceleration(1000);
-  myStepper.setCurrentPosition(0);
+  pinMode(stepPin, OUTPUT);
+  pinMode(dirPin, OUTPUT);
   pinMode(stepperEnable, OUTPUT);   
   digitalWrite(stepperEnable, LOW);
   Serial.begin(9600);
@@ -80,7 +46,11 @@ void setup() {
 }
 
 void loop() {
-  wantedAmount = Serial.read();
+  while (wantedAmount <= 0){
+    Serial.print("How much do you want? (patches of 50g)");
+    wantedAmount = Serial.read();
+  }
+  
   minimumCE = 0.98 *wantedAmount;
   //dispensing STATE
   //check if there is a bag | not necesserry for our project-->
@@ -93,9 +63,9 @@ void loop() {
       //finished state
       break;
     }
-    stepsDone = myStepper.currentPosition();
+    //stepsDone = myStepper.currentPosition();
   }
   Serial.print("This is the amount you got dispensed: ");
   Serial.println(currentAmount);
-
+  wantedAmount = 0;
 }

@@ -1,71 +1,144 @@
-/**
- * Complete project details at https://RandomNerdTutorials.com/arduino-load-cell-hx711/
- *
- * HX711 library for Arduino - example file
- * https://github.com/bogde/HX711
- *
- * MIT License
- * (c) 2018 Bogdan Necula
- *
-**/
+#include <HX711_ADC.h>
+#if defined(ESP8266)|| defined(ESP32) || defined(AVR)
+#include <EEPROM.h>
+#endif
+//calibration number = 483.84
+//pins:
+const int HX711_dout = 3; //mcu > HX711 dout pin
+const int HX711_sck = 5; //mcu > HX711 sck pin
 
-#include <Arduino.h>
-#include "HX711.h"
+//HX711 constructor:
+HX711_ADC LoadCell(HX711_dout, HX711_sck);
 
-// HX711 circuit wiring
-const int LOADCELL_DOUT_PIN = 2;
-const int LOADCELL_SCK_PIN = 3;
+const int calVal_eepromAdress = 0;
+unsigned long t = 0;
+void changeSavedCalFactor();
+void calibrate();
 
-HX711 scale;
 
 void setup() {
-  Serial.begin(57600);
-  Serial.println("HX711 Demo");
-  Serial.println("Initializing the scale");
-
-  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
-
-  Serial.println("Before setting up the scale:");
-  Serial.print("read: \t\t");
-  Serial.println(scale.read());      // print a raw reading from the ADC
-
-  Serial.print("read average: \t\t");
-  Serial.println(scale.read_average(20));   // print the average of 20 readings from the ADC
-
-  Serial.print("get value: \t\t");
-  Serial.println(scale.get_value(5));   // print the average of 5 readings from the ADC minus the tare weight (not set yet)
-
-  Serial.print("get units: \t\t");
-  Serial.println(scale.get_units(5), 1);  // print the average of 5 readings from the ADC minus tare weight (not set) divided
-            // by the SCALE parameter (not set yet)
-
-  scale.set_scale(-459.542);
-  //scale.set_scale(-471.497);                      // this value is obtained by calibrating the scale with known weights; see the README for details
-  scale.tare();               // reset the scale to 0
-
-  Serial.println("After setting up the scale:");
-
-  Serial.print("read: \t\t");
-  Serial.println(scale.read());                 // print a raw reading from the ADC
-
-  Serial.print("read average: \t\t");
-  Serial.println(scale.read_average(20));       // print the average of 20 readings from the ADC
-
-  Serial.print("get value: \t\t");
-  Serial.println(scale.get_value(5));   // print the average of 5 readings from the ADC minus the tare weight, set with tare()
-
-  Serial.print("get units: \t\t");
-  Serial.println(scale.get_units(5), 1);        // print the average of 5 readings from the ADC minus tare weight, divided
-            // by the SCALE parameter set with set_scale
-
-  Serial.println("Readings:");
+  Serial.begin(57600); delay(10);
+  Serial.println();
+  Serial.println("Starting...");
+  LoadCell.begin();
+  LoadCell.setSamplesInUse(4);
+  //LoadCell.setReverseOutput(); //uncomment to turn a negative output value to positive
+  unsigned long stabilizingtime = 2000; // preciscion right after power-up can be improved by adding a few seconds of stabilizing time
+  boolean _tare = true; //set this to false if you don't want tare to be performed in the next step
+  LoadCell.start(stabilizingtime, _tare);
+  
+  if (LoadCell.getTareTimeoutFlag() || LoadCell.getSignalTimeoutFlag()) {
+    Serial.println("Timeout, check MCU>HX711 wiring and pin designations");
+    while (1);
+  }
+  else {
+    LoadCell.setCalFactor(483.82); // +- 0.05
+    Serial.println("Startup is complete");
+  }
+  //while (!LoadCell.update());
+  //calibrate(); //start calibration procedure
 }
 
 void loop() {
-  Serial.print("one reading:\t");
-  Serial.print(scale.get_units(), 1);
-  Serial.print("\t| average:\t");
-  Serial.println(scale.get_units(10), 5);
+  static boolean newDataReady = 0;
+  const int serialPrintInterval = 0; //increase value to slow down serial print activity
+  
+  // check for new data/start next conversion:
+  if (LoadCell.update()){ 
+    newDataReady = true;
+  }
+  // get smoothed value from the dataset:
+  if (newDataReady) {
+    if (millis() > t + serialPrintInterval) {
+      Serial.print(LoadCell.getSamplesInUse());
+      int weight = LoadCell.getData();
+      Serial.print("Load_cell output val: ");
+      Serial.print(weight);
+      Serial.println(" grams");
+      newDataReady = 0;
+      t = millis();
+    }
+  }
 
-  delay(5000);
+  // receive command from serial terminal
+  if (Serial.available() > 0) {
+    char inByte = Serial.read();
+    if (inByte == 'r') LoadCell.tareNoDelay(); //tare
+    else if (inByte == 'c') calibrate(); //calibrate
+    else if (inByte == 's') changeSavedCalFactor(); //edit calibration value manually
+  }
+
+  // check if last tare operation is complete
+  if (LoadCell.getTareStatus() == true) {
+    Serial.println("Tare complete");
+  }
+  
+}
+
+void calibrate() {
+  Serial.println("***");
+  Serial.println("Start calibration:");
+  Serial.println("Place the load cell an a level stable surface.");
+  Serial.println("Remove any load applied to the load cell.");
+  Serial.println("Send 't' from serial monitor to set the tare offset.");
+
+  boolean _resume = false;
+  while (_resume == false) {
+    LoadCell.update();
+    if (Serial.available() > 0) {
+      if (Serial.available() > 0) {
+        char inByte = Serial.read();
+        if (inByte == 't') LoadCell.tareNoDelay();
+      }
+    }
+    if (LoadCell.getTareStatus() == true) {
+      Serial.println("Tare complete");
+      _resume = true;
+    }
+  }
+
+  Serial.println("Now, place your known mass on the loadcell.");
+  Serial.println("Then send the weight of this mass (i.e. 100.0) from serial monitor.");
+
+  float known_mass = 0;
+  _resume = false;
+  while (_resume == false) {
+    LoadCell.update();
+    if (Serial.available() > 0) {
+      known_mass = Serial.parseFloat();
+      if (known_mass != 0) {
+        Serial.print("Known mass is: ");
+        Serial.println(known_mass);
+        _resume = true;
+      }
+    }
+  }
+
+  LoadCell.refreshDataSet(); //refresh the dataset to be sure that the known mass is measured correct
+  float newCalibrationValue = LoadCell.getNewCalibration(known_mass); //get the new calibration value
+
+  Serial.print("New calibration value has been set to: ");
+  Serial.print(newCalibrationValue);
+  Serial.println(", use this as calibration value (calFactor) in your project sketch.");
+
+}
+void changeSavedCalFactor() {
+  float oldCalibrationValue = LoadCell.getCalFactor();
+  boolean _resume = false;
+  Serial.println("***");
+  Serial.print("Current value is: ");
+  Serial.println(oldCalibrationValue);
+  Serial.println("Now, send the new value from serial monitor, i.e. 696.0");
+  float newCalibrationValue;
+  while (_resume == false) {
+    if (Serial.available() > 0) {
+      newCalibrationValue = Serial.parseFloat();
+      if (newCalibrationValue != 0) {
+        Serial.print("New calibration value is: ");
+        Serial.println(newCalibrationValue);
+        LoadCell.setCalFactor(newCalibrationValue);
+        _resume = true;
+      }
+    }
+  }
 }

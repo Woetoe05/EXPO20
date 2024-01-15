@@ -58,7 +58,7 @@ void setup() {
   Serial.println();
   Serial.println("Starting...");
   LoadCell.begin();
-  LoadCell.setSamplesInUse(4);
+  LoadCell.setSamplesInUse(1);
   //LoadCell.setReverseOutput(); //uncomment to turn a negative output value to positive
   unsigned long stabilizingtime = 2000; // preciscion right after power-up can be improved by adding a few seconds of stabilizing time
   boolean _tare = true; //set this to false if you don't want tare to be performed in the next step
@@ -96,11 +96,11 @@ void loop() {
     start = Serial.read();//start scanning
     if (start == '!'){
       //ask for input
-      Serial.print("How many grams do you want?");
+      Serial.println("How many grams do you want?");
       wantedAmount = Serial.parseInt();
-      Serial.setTimeout(5000);//give 5 seconds to react
-      Serial.print("done!");
-     
+      Serial.setTimeout(50000);//give 5 seconds to react
+      Serial.println("done!");
+      delay(2000);
       if (wantedAmount==0){
         Serial.println("too late, start over.");
         Serial.print("press '!' to start order.");
@@ -128,6 +128,7 @@ void loop() {
 
   while (currentAmount < minimumCE){
     //weight = LoadCell.getData();\/
+    LoadCell.update();
     currentAmount = LoadCell.getData();//
     Serial.println(currentAmount);
     int RPM = whichState(currentAmount, wantedAmount, minimumCE);
@@ -141,6 +142,9 @@ void loop() {
   }
   Serial.print("This is the amount you got dispensed: ");
   Serial.println(currentAmount);
+  Serial.print("This is the amount you wanted: ");
+  Serial.println(wantedAmount);
   currentAmount = 0;
   wantedAmount = 0;
+  LoadCell.refreshDataSet();
 }

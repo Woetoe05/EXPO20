@@ -50,7 +50,8 @@ void stepperForward(int RPM)
     float rotationSpeed = (((60*1000000)/RPM)/200)/2;//delay in microseconds
     // Set motor direction clockwise
     digitalWrite(dirPin, HIGH);
-    Serial.print(rotationSpeed);
+    Serial.print("speed: ");
+    Serial.println(rotationSpeed);
     // Spin motor
     for(int x = 0; x < degreesToSteps(angle); x++)
     {

@@ -28,7 +28,7 @@ const int angle = 360;
 
 
 // variabels amounts
-double wantedAmount = 0;
+int wantedAmount = 0;
 double currentAmount = 0;
 double minimumCE;
 
@@ -51,10 +51,10 @@ void setup() {
   pinMode(dirPin, OUTPUT);
   pinMode(stepperEnable, OUTPUT);   
   digitalWrite(stepperEnable, LOW);
-  Serial.begin(9600);
+  //Serial.begin(9600);
 
   //begin scale:---------------------------------------------------------------------------------------------------------------
-  //Serial.begin(57600); delay(10);
+  Serial.begin(57600); delay(10);
   Serial.println();
   Serial.println("Starting...");
   LoadCell.begin();
@@ -85,12 +85,12 @@ bool accepted = false;
 byte start = ',';
 //memset(inputSeveral, 0, sizeof(inputSeveral));
 void loop() {
-  
+  Serial.print("press '!' to start order.");
+  Serial.print("give amount in multiplication of 50grams.");
   //while customer hasnt enterd an amount
   while (wantedAmount <= 0){
     //instructions for customer(more needed)
-    Serial.print("press '!' to start order.");
-    Serial.print("give amount in multiplication of 50grams.");
+    
 
     accepted = false;
     start = Serial.read();//start scanning
@@ -98,11 +98,13 @@ void loop() {
       //ask for input
       Serial.print("How many grams do you want?");
       wantedAmount = Serial.parseInt();
-      delay(5000);//give 5 seconds to react
+      Serial.setTimeout(5000);//give 5 seconds to react
       Serial.print("done!");
      
       if (wantedAmount==0){
         Serial.println("too late, start over.");
+        Serial.print("press '!' to start order.");
+        Serial.print("give amount in multiplication of 50grams.");
       }
        //if it exceeded limit, limit it 
       else if (wantedAmount>= 1000){

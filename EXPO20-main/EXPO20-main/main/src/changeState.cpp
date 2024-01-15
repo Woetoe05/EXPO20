@@ -8,7 +8,7 @@
 /// @return the rpm
 int whichState(double currentAmount, double wantedAmount, double minimumCE){
   if (currentAmount <= 0.8*wantedAmount){//normal speed under risk amount
-    return 60;
+    return 80;
   }
   else if (currentAmount >= wantedAmount){//stop when above wanted amount
     return 0;

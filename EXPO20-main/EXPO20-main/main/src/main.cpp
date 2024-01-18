@@ -13,7 +13,8 @@ using namespace std;
 //Servo's
 Servo ServoScrew;
 Servo ServoValve;
-
+int close = 0;
+int open = 180;
 
 //Stepper motor
 const int dirPin = 7;
@@ -51,6 +52,8 @@ void setup() {
   pinMode(dirPin, OUTPUT);
   pinMode(stepperEnable, OUTPUT);   
   digitalWrite(stepperEnable, LOW);
+  ServoScrew.attach(9);
+  ServoScrew.write(close);
   //Serial.begin(9600);
 
   //begin scale:---------------------------------------------------------------------------------------------------------------
@@ -99,6 +102,7 @@ void loop() {
       Serial.println("How many grams do you want?");
       wantedAmount = Serial.parseInt();
       Serial.setTimeout(50000);//give 5 seconds to react
+      Serial.print(wantedAmount);
       Serial.println("done!");
       delay(2000);
       if (wantedAmount==0){
@@ -110,13 +114,13 @@ void loop() {
       else if (wantedAmount>= 1000){
         wantedAmount = 1000;//grams
       }
-      else if(wantedAmount<=50){
+      else if(wantedAmount<=50 && wantedAmount >= 0){
         wantedAmount = 50;//grams
       }
       Serial.println(wantedAmount);
     }
   }
-  Serial.print("This is the final amount you got dispensed:  ");
+  Serial.print("This is the final amount you wanted:  ");
   Serial.println(wantedAmount);
   Serial.print("grams.");
   minimumCE = 0.98 *wantedAmount;
@@ -126,15 +130,17 @@ void loop() {
   //when the bag is there, reset the scale and open the servos.--------->\/
   LoadCell.tareNoDelay();
 
-  while (currentAmount < minimumCE){
+  while (currentAmount < wantedAmount){
     //weight = LoadCell.getData();\/
     LoadCell.update();
     currentAmount = LoadCell.getData();//
     Serial.println(currentAmount);
+    ServoScrew.write(open);
     int RPM = whichState(currentAmount, wantedAmount, minimumCE);
     stepperForward(RPM);
     if (RPM == 0){
       //close all servo's
+      ServoScrew.write(close);
       //finished state
       break;
     }

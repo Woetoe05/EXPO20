@@ -85,11 +85,12 @@ void setup() {
   //ready safe STATE-->
 }
 bool accepted = false;
-byte start = ',';
+char start = ',';
 //memset(inputSeveral, 0, sizeof(inputSeveral));
 void loop() {
   Serial.print("press '!' to start order.");
   Serial.print("give amount in multiplication of 50grams.");
+  Serial.print("You have 5 seconds after you typ '!'");
   //while customer hasnt enterd an amount
   while (wantedAmount <= 0){
     //instructions for customer(more needed)
@@ -109,29 +110,50 @@ void loop() {
         Serial.println("too late, start over.");
         Serial.print("press '!' to start order.");
         Serial.print("give amount in multiplication of 50grams.");
+        Serial.print("You have 5 seconds after you typ '!'");
       }
        //if it exceeded limit, limit it 
       else if (wantedAmount>= 1000){
         wantedAmount = 1000;//grams
       }
-      else if(wantedAmount<=50 && wantedAmount >= 0){
+      else if(wantedAmount<=50 && wantedAmount > 0){
         wantedAmount = 50;//grams
       }
-      Serial.println(wantedAmount);
+      //ask if this is the wanted amount if no then reset
+      if(wantedAmount>0){
+        Serial.print("Is this the amount you wanted? ");
+        Serial.print(wantedAmount);
+        Serial.println(" grams.");
+        Serial.println("answer with y/n");
+        char choice = 'c';
+        while(choice != 'y' || choice != 'n'){
+          choice = Serial.read();
+          if (choice == 'n'){
+            wantedAmount = 0;
+            start = ',';
+            Serial.print("press '!' to start order.");
+            Serial.print("give amount in multiplication of 50grams.");
+            Serial.print("You have 5 seconds after you typ '!'");
+          }
+        }
+      }
     }
   }
   Serial.print("This is the final amount you wanted:  ");
   Serial.println(wantedAmount);
-  Serial.print("grams.");
+  Serial.println("grams.");
   minimumCE = 0.98 *wantedAmount;
   
   //dispensing STATE
   //check if there is a bag | not necesserry for our project
   //when the bag is there, reset the scale and open the servos.--------->\/
+  Serial.print("remove everything from the scale.");
+  delay(3000);
   LoadCell.tareNoDelay();
+  Serial.print("Place your container on the scale");
+  delay(3000);
 
   while (currentAmount < wantedAmount){
-    //weight = LoadCell.getData();\/
     LoadCell.update();
     currentAmount = LoadCell.getData();//
     Serial.println(currentAmount);
@@ -152,5 +174,8 @@ void loop() {
   Serial.println(wantedAmount);
   currentAmount = 0;
   wantedAmount = 0;
+  LoadCell.tareNoDelay();
   LoadCell.refreshDataSet();
+  LoadCell.getData();
+  LoadCell.tareNoDelay();
 }

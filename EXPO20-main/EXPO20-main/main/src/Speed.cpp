@@ -39,7 +39,7 @@ const int stepsPerRevolution = 200;
 //const int RPM = 65;
 
 
-const int angle = 5;
+const int angle = 9;
 long degreesToSteps(long degrees)
 {
     int steps = map(degrees, 0, 360, 0, 200);

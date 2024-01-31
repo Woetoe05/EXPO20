@@ -6,5 +6,6 @@ Welcome to the project! The main source code for this project is located in the 
 
 the code is structured with a platform.io and cpp with arduino. the code will be explained further in the above directory
 
-##instructions:
+## instructions:
+
 type 't EXPO20-main/EXPO20-main/main/src' to go the coding files.

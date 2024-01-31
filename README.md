@@ -1,8 +1,8 @@
 # Project Title
 
-Welcome to the project! The main source code for this project is located in the `main/src` directory.
+Welcome to the project! The main source code for this project is located in the `EXPO20-main/EXPO20-main/main/src' directory.
 
 ## Code Structure
 
-The relevant code files are in the following path relative to this README:
+the code is structured with a platform.io and cpp with arduino. the code will be explained further in the above directory
 

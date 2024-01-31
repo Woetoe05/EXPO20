@@ -5,7 +5,7 @@
 This is where most variables are declared and here is the setup() initialised and is void loop() running.
 
 then is this the info the customer gets before the module starts
-```
+```cpp
 void loop(){
   Serial.print("press '!' to start order.");
   Serial.print("give amount in multiplication of 50grams.");

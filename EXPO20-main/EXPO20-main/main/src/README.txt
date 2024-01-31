@@ -1,1 +1,5 @@
-this is a test doc for src the code
+# main structure
+
+## calculations.h
+
+## calculations.cpp

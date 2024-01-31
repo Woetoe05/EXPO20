@@ -1,5 +1,6 @@
-# main structure
-fvef
+# what the files do
+
+## main.cpp
 
 ## calculations.h
 fvev

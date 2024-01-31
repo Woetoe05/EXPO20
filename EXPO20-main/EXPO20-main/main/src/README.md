@@ -19,7 +19,7 @@ void loop(){
 when the customer has started it with '!' then:
 
 the amount of grams is asked with a timeframe of 5 seconds
-```
+```cpp
     if (start == '!'){
       //ask for input
       Serial.println("How many grams do you want?");
@@ -32,7 +32,7 @@ the amount of grams is asked with a timeframe of 5 seconds
 ```
 
 when the customer is too slow it will start over
-```
+```cpp
       if (wantedAmount==0){
         Serial.println("too late, start over.");
         Serial.print("press '!' to start order.");
@@ -41,7 +41,7 @@ when the customer is too slow it will start over
       }
 ```
 If the customer exceeds the limits it will correct to its limits.
-```
+```cpp
        //if it exceeded limit, limit it 
       else if (wantedAmount>= 1000){
         wantedAmount = 1000;//grams
@@ -54,7 +54,7 @@ If the customer exceeds the limits it will correct to its limits.
 ```
 
 If the user isn't satisfied with their amount of grams then they can 
-```
+```cpp
       if(wantedAmount>0){
         Serial.print("Is this the amount you wanted? ");
         Serial.print(wantedAmount);
@@ -76,7 +76,7 @@ If the user isn't satisfied with their amount of grams then they can
 ```
 
 scale is reset to 0 grams.
-```
+```cpp
   Serial.print("remove everything from the scale.");
   delay(3000);
   LoadCell.tareNoDelay();
@@ -85,29 +85,29 @@ scale is reset to 0 grams.
 ```
 
 While the currentAmount hasnt reached the wantedAmount keep filling the container/bag.
-```
+```cpp
   while (currentAmount < wantedAmount){
 ```
 
 update scale
-```
+```cpp
     LoadCell.update();
     currentAmount = LoadCell.getData();//
     Serial.println(currentAmount);
 ```
 
 open the screw
-```
+```cpp
     ServoScrew.write(open);
 ```
 
 get the RPM depending on how full it is. see 'changeState.cpp'
-```
+```cpp
     int RPM = whichState(currentAmount, wantedAmount, minimumCE);
 ```
 
 the RPM is used with the stepperForward(RPM) to change the speed. see 'speed.cpp'
-```
+```cpp
     stepperForward(RPM);
     if (RPM == 0){
       //close all servo's
@@ -120,7 +120,7 @@ the RPM is used with the stepperForward(RPM) to change the speed. see 'speed.cpp
 ```
 
 at the end the amounts are displayed and compared with eachother. To check if the tolerance is ok.
-```
+```cpp
   Serial.print("This is the amount you got dispensed: ");
   Serial.println(currentAmount);
   Serial.print("This is the amount you wanted: ");

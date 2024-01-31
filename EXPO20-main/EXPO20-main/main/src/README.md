@@ -2,7 +2,9 @@
 
 ## main.cpp
 
-This is where most variables are declared and here is the setup() initialised and is void() running.
+This is where most variables are declared and here is the setup() initialised and is void loop() running.
+
+then is this the info the user gets before the module starts
 ```
 void loop():
   Serial.print("press '!' to start order.");
@@ -16,8 +18,9 @@ void loop():
     }
 ```
 
+then ...
+
 ## calculations.h
-fvev
 
 ## calculations.cpp
-fvfed
+

@@ -135,6 +135,9 @@ void loop() {
             Serial.print("give amount in multiplication of 50grams.");
             Serial.print("You have 5 seconds after you typ '!'");
           }
+          else if (choice == 'y'){
+            break;
+          }
         }
       }
     }
@@ -147,10 +150,10 @@ void loop() {
   //dispensing STATE
   //check if there is a bag | not necesserry for our project
   //when the bag is there, reset the scale and open the servos.--------->\/
-  Serial.print("remove everything from the scale.");
+  Serial.print("Place your container on the scale");
   delay(3000);
   LoadCell.tareNoDelay();
-  Serial.print("Place your container on the scale");
+  
   delay(3000);
 
   while (currentAmount < wantedAmount){

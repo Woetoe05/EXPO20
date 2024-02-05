@@ -13,4 +13,4 @@ Here are all the files that will be executed on the arduino.
 
 ### platform.io:
 
-This is the place where the libriaries are initialised.(the library also needs to be installed on visual studio code itself.)
+This is the place where the libriaries are initialised.

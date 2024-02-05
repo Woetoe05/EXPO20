@@ -135,8 +135,61 @@ at the end the amounts are displayed and compared with eachother. To check if th
 ```
 
 ## calculations.h
+here are all the functions
 
 ## changeState.cpp
-
+here it changes the state to change the speed later.
+```
+int whichState(double currentAmount, double wantedAmount, double minimumCE){
+  
+  if (currentAmount <= 0.8*wantedAmount && currentAmount >= 0.5*wantedAmount && wantedAmount <= 400){
+    return 40;
+  } 
+  else if (currentAmount <= 0.8*wantedAmount){//normal speed under risk amount
+    return 100;
+  }
+  else if (currentAmount >= wantedAmount){//stop when above wanted amount
+    return 0;
+  }
+  else if (currentAmount >= minimumCE){//slow down a lot when in CE range
+    return 5;
+  }
+  else if (currentAmount >= 0.8*wantedAmount){//slower speed above risk amount
+    return 20;
+  }
+  
+  
+  return 0;
+}
+```
 ## Speed.cpp
+here it changes the speed according to states.
 
+convert degrees to steps
+```
+long degreesToSteps(long degrees)
+{
+    int steps = map(degrees, 0, 360, 0, 200);
+    return steps;    
+}
+```
+uses the rpm from the state to change the speed of the stepper motor
+```
+void stepperForward(int RPM)
+{
+    digitalWrite(dirPin, HIGH);
+    float rotationSpeed = (((60*1000000)/RPM)/200)/2;//delay in microseconds
+    // Set motor direction counterclockwise
+    
+    Serial.print("speed: ");
+    Serial.println(rotationSpeed);
+    // Spin motor
+    for(int x = 0; x < degreesToSteps(angle); x++)
+    {
+        digitalWrite(stepPin, HIGH);
+        delayMicroseconds(rotationSpeed);
+        digitalWrite(stepPin, LOW);
+        delayMicroseconds(rotationSpeed);
+    }
+}
+```

@@ -1,7 +1,5 @@
 //ready not safe STATE
 #include <Arduino.h>
-#include <Servo.h>
-#include <AccelStepper.h>
 #include <Calculations.h> 
 
 #include <HX711_ADC.h>
@@ -9,12 +7,6 @@
 #include <EEPROM.h>
 #endif
 using namespace std;
-
-//Servo's
-Servo ServoScrew;
-Servo ServoValve;
-int close = 0;
-int open = 180;
 
 //Stepper motor
 const int dirPin = 7;
@@ -54,8 +46,6 @@ void setup() {
   pinMode(dirPin, OUTPUT);
   pinMode(stepperEnable, OUTPUT);   
   digitalWrite(stepperEnable, LOW);
-  ServoScrew.attach(9);
-  ServoScrew.write(close);
   //Serial.begin(9600);
 
   //begin scale:---------------------------------------------------------------------------------------------------------------
@@ -158,7 +148,6 @@ void loop() {
     LoadCell.update();
     currentAmount = LoadCell.getData();//
     Serial.println(currentAmount);
-    ServoScrew.write(open);
     int RPM = whichState(currentAmount, wantedAmount, minimumCE);
     stepperForward(RPM);
     if (RPM == 0){
@@ -170,7 +159,7 @@ void loop() {
     //stepsDone = myStepper.currentPosition();
   }
   Serial.println("--------------------------------------------");
-    Serial.print("This is the amount you got dispensed: ");
+  Serial.print("This is the amount you got dispensed: ");
   Serial.println(currentAmount);
   Serial.println("------------------------------------");
   Serial.print("This is the amount you wanted: ");

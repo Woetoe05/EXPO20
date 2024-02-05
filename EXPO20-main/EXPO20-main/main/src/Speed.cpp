@@ -47,9 +47,10 @@ long degreesToSteps(long degrees)
 }
 void stepperForward(int RPM)
 {
+    digitalWrite(dirPin, HIGH);
     float rotationSpeed = (((60*1000000)/RPM)/200)/2;//delay in microseconds
     // Set motor direction counterclockwise
-    digitalWrite(dirPin, LOW);
+    
     Serial.print("speed: ");
     Serial.println(rotationSpeed);
     // Spin motor

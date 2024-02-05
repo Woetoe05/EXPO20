@@ -32,6 +32,8 @@ const int angle = 360;
 int wantedAmount = 0;
 double currentAmount = 0;
 double minimumCE;
+const float euroPer1 = 0.002;//2,-/1kg
+float finaleuros;//final money amount
 
 //scale
 const int HX711_dout = 3; //mcu > HX711 dout pin
@@ -100,24 +102,23 @@ void loop() {
     start = Serial.read();//start scanning
     if (start == '!'){
       //ask for input
+      
       Serial.println("How many grams do you want?");
-      wantedAmount = Serial.parseInt();
-      Serial.setTimeout(50000);//give 5 seconds to react
-      Serial.print(wantedAmount);
-      Serial.println("done!");
-      delay(2000);
-      if (wantedAmount==0){
-        Serial.println("too late, start over.");
-        Serial.print("press '!' to start order.");
-        Serial.print("give amount in multiplication of 50grams.");
-        Serial.print("You have 5 seconds after you typ '!'");
+      while(wantedAmount <= 0){
+        wantedAmount = Serial.parseInt();
       }
+      Serial.println(wantedAmount);
+      Serial.println("amount is entered.");
        //if it exceeded limit, limit it 
-      else if (wantedAmount>= 1000){
+      if (wantedAmount>= 1000){
         wantedAmount = 1000;//grams
       }
-      else if(wantedAmount<=50 && wantedAmount > 0){
+      else if(wantedAmount<=50){
         wantedAmount = 50;//grams
+      }
+      else{//make patches of 50
+        wantedAmount = wantedAmount/50;
+        wantedAmount = wantedAmount*50;
       }
       //ask if this is the wanted amount if no then reset
       if(wantedAmount>0){
@@ -126,7 +127,7 @@ void loop() {
         Serial.println(" grams.");
         Serial.println("answer with y/n");
         char choice = 'c';
-        while(choice != 'y' || choice != 'n'){
+        while(choice != 'y' && choice != 'n'){
           choice = Serial.read();
           if (choice == 'n'){
             wantedAmount = 0;
@@ -134,9 +135,6 @@ void loop() {
             Serial.print("press '!' to start order.");
             Serial.print("give amount in multiplication of 50grams.");
             Serial.print("You have 5 seconds after you typ '!'");
-          }
-          else if (choice == 'y'){
-            break;
           }
         }
       }
@@ -171,13 +169,21 @@ void loop() {
     }
     //stepsDone = myStepper.currentPosition();
   }
-  Serial.print("This is the amount you got dispensed: ");
+  Serial.println("--------------------------------------------");
+    Serial.print("This is the amount you got dispensed: ");
   Serial.println(currentAmount);
+  Serial.println("------------------------------------");
   Serial.print("This is the amount you wanted: ");
   Serial.println(wantedAmount);
+  finaleuros  = currentAmount*euroPer1;
+  Serial.println("---------------------------------------");
+  Serial.print("This is how much you have to pay: ");
+  Serial.println(finaleuros);
+  Serial.println("---------------------------------------");
   currentAmount = 0;
   wantedAmount = 0;
-  LoadCell.tareNoDelay();
+  LoadCell.begin();
+  LoadCell.tare();
   LoadCell.refreshDataSet();
   LoadCell.getData();
   LoadCell.tareNoDelay();

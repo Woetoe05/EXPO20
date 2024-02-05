@@ -151,8 +151,6 @@ void loop() {
     int RPM = whichState(currentAmount, wantedAmount, minimumCE);
     stepperForward(RPM);
     if (RPM == 0){
-      //close all servo's
-      ServoScrew.write(close);
       //finished state
       break;
     }
